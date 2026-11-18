@@ -32,9 +32,19 @@ PRODUCT_PACKAGES += \
 
 # ODM HAL blobs
 PRODUCT_COPY_FILES += \
-    $(DOLBY_PATH)/proprietary/odm/etc/init/vendor.dolby.media.c2@1.0-service.rc:$(TARGET_COPY_OUT_ODM)/etc/init/vendor.dolby.media.c2@1.0-service.rc \
+    $(DOLBY_PATH)/proprietary/odm/etc/init/vendor.dolby.media.c2@1.0-service.rc:$(TARGET_COPY_OUT_ODM)/etc/init/vendor.dolby.media.c2@1.0-service.rc
+
+ifneq ($(TARGET_DOLBY_SKIP_LEGACY_DMS),true)
+PRODUCT_COPY_FILES += \
     $(DOLBY_PATH)/proprietary/odm/etc/init/vendor.dolby_sp.hardware.dmssp@2.0-service.rc:$(TARGET_COPY_OUT_ODM)/etc/init/vendor.dolby_sp.hardware.dmssp@2.0-service.rc \
     $(DOLBY_PATH)/proprietary/odm/etc/init/vendor.dolby_v3_6.hardware.dms360@2.0-service.rc:$(TARGET_COPY_OUT_ODM)/etc/init/vendor.dolby_v3_6.hardware.dms360@2.0-service.rc
+
+PRODUCT_PACKAGES += \
+    manifest_dax_dolby_v3_6.xml \
+    vendor.dolby.hardware.dms.xml \
+    vendor.dolby_sp.hardware.dmssp@2.0-service \
+    vendor.dolby_v3_6.hardware.dms360@2.0-service
+endif
 
 PRODUCT_PACKAGES += \
     libdapparamstorage_v3_6 \
@@ -58,11 +68,7 @@ PRODUCT_PACKAGES += \
     vendor.dolby_sp.hardware.dmssp@2.0-impl \
     vendor.dolby_sp.hardware.dmssp@2.0 \
     vendor.dolby_v3_6.hardware.dms360@2.0-impl \
-    manifest_dax_dolby_v3_6.xml \
-    vendor.dolby.hardware.dms.xml \
-    vendor.dolby_sp.hardware.dmssp@2.0-service \
-    vendor.dolby_sp.media.c2@1.0-service \
-    vendor.dolby_v3_6.hardware.dms360@2.0-service
+    vendor.dolby_sp.media.c2@1.0-service
 
 # VINTF
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
