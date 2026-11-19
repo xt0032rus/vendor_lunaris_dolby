@@ -84,36 +84,37 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
 
     private fun applyProfileSettings(profile: Int) {
         try {
-            val prefs = getProfilePrefs(profile)
-            
-            val ieqPreset = prefs.getString(DolbyConstants.PREF_IEQ, "0")?.toIntOrNull() ?: 0
-            dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, ieqPreset, profile)
-            
-            val hpVirtualizer = prefs.getBoolean(DolbyConstants.PREF_HP_VIRTUALIZER, false)
-            dolbyEffect.setDapParameter(DsParam.HEADPHONE_VIRTUALIZER, hpVirtualizer, profile)
-            
-            val spkVirtualizer = prefs.getBoolean(DolbyConstants.PREF_SPK_VIRTUALIZER, false)
-            dolbyEffect.setDapParameter(DsParam.SPEAKER_VIRTUALIZER, spkVirtualizer, profile)
-            
+            val settings = getProfilePrefs(profile).all
+
+            (settings[DolbyConstants.PREF_IEQ] as? String)?.toIntOrNull()?.let {
+                dolbyEffect.setDapParameter(DsParam.IEQ_PRESET, it, profile)
+            }
+            (settings[DolbyConstants.PREF_HP_VIRTUALIZER] as? Boolean)?.let {
+                dolbyEffect.setDapParameter(DsParam.HEADPHONE_VIRTUALIZER, it, profile)
+            }
+            (settings[DolbyConstants.PREF_SPK_VIRTUALIZER] as? Boolean)?.let {
+                dolbyEffect.setDapParameter(DsParam.SPEAKER_VIRTUALIZER, it, profile)
+            }
             if (stereoWideningSupported) {
-                val stereoWidening = prefs.getInt(DolbyConstants.PREF_STEREO_WIDENING, 32)
-                dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, stereoWidening, profile)
+                (settings[DolbyConstants.PREF_STEREO_WIDENING] as? Int)?.let {
+                    dolbyEffect.setDapParameter(DsParam.STEREO_WIDENING_AMOUNT, it, profile)
+                }
             }
-            
-            val dialogueEnabled = prefs.getBoolean(DolbyConstants.PREF_DIALOGUE, false)
-            dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_ENABLE, dialogueEnabled, profile)
-            
-            val dialogueAmount = prefs.getInt(DolbyConstants.PREF_DIALOGUE_AMOUNT, 6)
-            dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_AMOUNT, dialogueAmount, profile)
-            
-            val bassEnabled = prefs.getBoolean(DolbyConstants.PREF_BASS, false)
-            dolbyEffect.setDapParameter(DsParam.BASS_ENHANCER_ENABLE, bassEnabled, profile)
-            
+            (settings[DolbyConstants.PREF_DIALOGUE] as? Boolean)?.let {
+                dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_ENABLE, it, profile)
+            }
+            (settings[DolbyConstants.PREF_DIALOGUE_AMOUNT] as? Int)?.let {
+                dolbyEffect.setDapParameter(DsParam.DIALOGUE_ENHANCER_AMOUNT, it, profile)
+            }
+            (settings[DolbyConstants.PREF_BASS] as? Boolean)?.let {
+                dolbyEffect.setDapParameter(DsParam.BASS_ENHANCER_ENABLE, it, profile)
+            }
             if (volumeLevelerSupported) {
-                val volumeLeveler = prefs.getBoolean(DolbyConstants.PREF_VOLUME, false)
-                dolbyEffect.setDapParameter(DsParam.VOLUME_LEVELER_ENABLE, volumeLeveler, profile)
+                (settings[DolbyConstants.PREF_VOLUME] as? Boolean)?.let {
+                    dolbyEffect.setDapParameter(DsParam.VOLUME_LEVELER_ENABLE, it, profile)
+                }
             }
-            
+
             DolbyConstants.dlog(TAG, "Successfully restored all settings for profile $profile")
         } catch (e: Exception) {
             DolbyConstants.dlog(TAG, "Failed to restore profile settings: ${e.message}")
@@ -121,7 +122,7 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
     }
 
     fun applySavedState() {
-    checkEffect()
+        checkEffect()
         val enabled = defaultPrefs.getBoolean(DolbyConstants.PREF_ENABLE, false)
         dolbyEffect.dsOn = enabled
         if (enabled) {
@@ -169,7 +170,6 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
     fun getCurrentProfile(): Int {
         return try {
             checkEffect()
-            restoreSavedProfileIfNeeded()
             dolbyEffect.profile
         } catch (e: Exception) {
             DolbyConstants.dlog(TAG, "Error getting current profile: ${e.message}")
@@ -188,6 +188,7 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
                 DolbyConstants.dlog(TAG, "WARNING: Profile may not have been saved correctly!")
             }
             restoreProfilePreset(profile)
+            applyProfileSettings(profile)
             _currentProfile.value = profile
             DolbyConstants.dlog(TAG, "Profile set to: $profile")
         } catch (e: Exception) {
